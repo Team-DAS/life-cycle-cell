@@ -73,8 +73,9 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8080:8080"
+    # Removed port exposure - only accessible through API Gateway
+    # ports:
+    #   - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,8 +103,9 @@ services:
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8083:8083"
+    # Removed port exposure - only accessible through API Gateway
+    # ports:
+    #   - "8083:8083"
     depends_on:
       postgres-notifications:
         condition: service_healthy
@@ -113,6 +115,30 @@ services:
       - life-cycle-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: life-cycle-api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      application-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    networks:
+      - life-cycle-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -154,18 +180,6 @@ services:
     profiles:
       - future-services
 
-  # API Gateway (placeholder for future service)
-  api-gateway:
-    image: openjdk:17-jre-slim
-    container_name: life-cycle-api-gateway
-    ports:
-      - "8000:8000"
-    depends_on:
-      - application-service
-    networks:
-      - life-cycle-network
-    profiles:
-      - future-services
 
 volumes:
   postgres_data:

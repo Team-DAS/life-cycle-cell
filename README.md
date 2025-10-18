@@ -56,14 +56,27 @@ life-cycle-cell/
   - `GET /api/v1/notifications/user/{userId}/unread-count` - Contador no leídas
 - **Comunicación:** Asíncrona via RabbitMQ (cola: notifications.queue)
 
-### 3. Project Service (Planificado)
+### 3. API Gateway (Célula de Enrutamiento)
+**Responsabilidad:** Punto de entrada único y enrutamiento
+
+- **Puerto:** 8000
+- **Tecnología:** Spring Cloud Gateway
+- **Funcionalidades:**
+  - Enrutamiento centralizado a todos los servicios
+  - CORS global configurado
+  - Health checks y monitoreo
+  - Punto único de entrada para clientes
+- **Rutas:**
+  - `/api/v1/applications/**` → Application Service
+  - `/api/v1/notifications/**` → Notification Service
+  - `/api/v1/projects/**` → Project Service (futuro)
+  - `/api/v1/users/**` → User Service (futuro)
+
+### 4. Project Service (Planificado)
 **Responsabilidad:** Gestión de proyectos y empleadores
 
-### 4. User Service (Planificado)
+### 5. User Service (Planificado)
 **Responsabilidad:** Gestión de usuarios (freelancers y empleadores)
-
-### 5. API Gateway (Planificado)
-**Responsabilidad:** Enrutamiento y autenticación centralizada
 
 ## 🚀 Inicio Rápido
 
@@ -93,13 +106,22 @@ life-cycle-cell/
 
 4. **Ejecutar solo servicios activos:**
    ```bash
-   docker-compose up -d postgres application-service
+   docker-compose up -d postgres postgres-notifications rabbitmq application-service notification-service api-gateway
    ```
 
 5. **Ver logs:**
    ```bash
-   docker-compose logs -f application-service
+   docker-compose logs -f api-gateway
    ```
+
+### Acceso a los Servicios
+
+**Todos los servicios ahora se acceden a través del API Gateway:**
+
+- **Application Service:** `http://localhost:8000/api/v1/applications`
+- **Notification Service:** `http://localhost:8000/api/v1/notifications`
+- **Health Check Gateway:** `http://localhost:8000/actuator/health`
+- **RabbitMQ Management:** `http://localhost:15672` (guest/guest)
 
 ### Desarrollo Local
 
@@ -134,11 +156,11 @@ life-cycle-cell/
 | PostgreSQL (sql7) | 5433 | Base de datos de notificaciones |
 | RabbitMQ | 5672 | Message broker |
 | RabbitMQ Management | 15672 | Interfaz web de RabbitMQ |
-| Application Service | 8080 | API de postulaciones |
-| Notification Service | 8083 | API de notificaciones |
+| **API Gateway** | **8000** | **Punto de entrada único** |
+| Application Service | 8080 | API de postulaciones (interno) |
+| Notification Service | 8083 | API de notificaciones (interno) |
 | Project Service | 8081 | API de proyectos (futuro) |
 | User Service | 8082 | API de usuarios (futuro) |
-| API Gateway | 8000 | Gateway principal (futuro) |
 
 ## 🧪 Testing
 

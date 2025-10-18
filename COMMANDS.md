@@ -7,14 +7,19 @@
 docker-compose up -d
 ```
 
-### Start Only Database
+### Start Only Active Services
 ```bash
-docker-compose up -d postgres
+docker-compose up -d postgres postgres-notifications rabbitmq application-service notification-service api-gateway
 ```
 
-### Start Application Service Only
+### Start Only Database and Message Broker
 ```bash
-docker-compose up -d postgres application-service
+docker-compose up -d postgres postgres-notifications rabbitmq
+```
+
+### Start API Gateway Only
+```bash
+docker-compose up -d api-gateway
 ```
 
 ### View Logs
@@ -85,7 +90,12 @@ docker exec -it life-cycle-postgres psql -U postgres -d sql4
 
 ### Check Service Health
 ```bash
-curl http://localhost:8080/actuator/health
+# API Gateway Health (main entry point)
+curl http://localhost:8000/actuator/health
+
+# Individual service health (internal)
+curl http://localhost:8080/actuator/health  # Application Service
+curl http://localhost:8083/actuator/health # Notification Service
 ```
 
 ### Check Database Connection

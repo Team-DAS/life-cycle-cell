@@ -1,0 +1,37 @@
+// Root build.gradle for Life Cycle Cell - Multi-service architecture
+plugins {
+    id 'java'
+}
+
+allprojects {
+    group = 'com.freelance.lifecycle'
+    version = '0.0.1-SNAPSHOT'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    
+    java {
+        sourceCompatibility = '17'
+    }
+    
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+    
+    dependencies {
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+    
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}

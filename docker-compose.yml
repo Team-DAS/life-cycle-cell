@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: life-cycle-postgres
+    environment:
+      POSTGRES_DB: sql4
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - life-cycle-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Notifications (SQL7)
+  postgres-notifications:
+    image: postgres:15-alpine
+    container_name: life-cycle-postgres-notifications
+    environment:
+      POSTGRES_DB: sql7
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_notifications_data:/var/lib/postgresql/data
+    networks:
+      - life-cycle-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: life-cycle-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - life-cycle-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Application Service
+  application-service:
+    build:
+      context: ./application-service
+      dockerfile: Dockerfile
+    container_name: life-cycle-application-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - life-cycle-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: life-cycle-notification-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notifications:5432/sql7
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres-notifications:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - life-cycle-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Project Service (placeholder for future service)
+  project-service:
+    image: openjdk:17-jre-slim
+    container_name: life-cycle-project-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - life-cycle-network
+    profiles:
+      - future-services
+
+  # User Service (placeholder for future service)
+  user-service:
+    image: openjdk:17-jre-slim
+    container_name: life-cycle-user-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - life-cycle-network
+    profiles:
+      - future-services
+
+  # API Gateway (placeholder for future service)
+  api-gateway:
+    image: openjdk:17-jre-slim
+    container_name: life-cycle-api-gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - application-service
+    networks:
+      - life-cycle-network
+    profiles:
+      - future-services
+
+volumes:
+  postgres_data:
+  postgres_notifications_data:
+  rabbitmq_data:
+
+networks:
+  life-cycle-network:
+    driver: bridge

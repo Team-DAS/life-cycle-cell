@@ -1,0 +1,4 @@
+rootProject.name = 'life-cycle-cell'
+
+include 'application-service'
+include 'notification-service'

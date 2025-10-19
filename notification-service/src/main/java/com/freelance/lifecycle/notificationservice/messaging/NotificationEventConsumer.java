@@ -3,21 +3,24 @@ package com.freelance.lifecycle.notificationservice.messaging;
 import com.freelance.lifecycle.notificationservice.dto.NotificationEventDTO;
 import com.freelance.lifecycle.notificationservice.service.NotificationService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.listener.api.RabbitListenerErrorHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
-@RequiredArgsConstructor
-@Slf4j
 @Validated
 public class NotificationEventConsumer {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationEventConsumer.class);
     private final NotificationService notificationService;
+
+    public NotificationEventConsumer(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     @RabbitListener(queues = "notifications.queue", errorHandler = "rabbitListenerErrorHandler")
     public void handleNotificationEvent(@Valid NotificationEventDTO eventDTO) {
@@ -38,6 +41,8 @@ public class NotificationEventConsumer {
     @Component("rabbitListenerErrorHandler")
     public static class RabbitListenerErrorHandlerImpl implements RabbitListenerErrorHandler {
 
+        private static final Logger log = LoggerFactory.getLogger(RabbitListenerErrorHandlerImpl.class);
+
         @Override
         public Object handleError(Message amqpMessage,
                                   org.springframework.messaging.Message<?> message,
@@ -46,7 +51,6 @@ public class NotificationEventConsumer {
 
             // Aquí podrías enviar el mensaje a una Dead Letter Queue (DLQ)
             // o implementar lógica de reintento.
-            // return null -> reconoce el mensaje y evita reprocesarlo.
             return null;
         }
     }

@@ -2,20 +2,24 @@ package com.freelance.lifecycle.notificationservice.controller;
 
 import com.freelance.lifecycle.notificationservice.dto.NotificationDTO;
 import com.freelance.lifecycle.notificationservice.service.NotificationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/v1/notifications")
-@RequiredArgsConstructor
-@Slf4j
 public class NotificationController {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
+
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<NotificationDTO>> getNotificationsForUser(@PathVariable Long userId) {

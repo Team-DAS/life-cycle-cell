@@ -17,7 +17,7 @@ COPY src/ src/
 RUN ./gradlew build -x test
 
 # Runtime stage
-FROM openjdk:17-jre-slim
+FROM openjdk:17-slim
 
 WORKDIR /app
 

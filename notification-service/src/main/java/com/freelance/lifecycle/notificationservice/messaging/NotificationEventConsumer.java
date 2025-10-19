@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.listener.api.RabbitListenerErrorHandler;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
@@ -41,7 +42,7 @@ public class NotificationEventConsumer {
         @Override
         public Object handleError(Message amqpMessage,
                                   org.springframework.messaging.Message<?> message,
-                                  Exception ex) {
+                                  ListenerExecutionFailedException ex) {
             log.error("RabbitMQ listener error: {}", ex.getMessage(), ex);
 
             // Aquí podrías enviar el mensaje a una Dead Letter Queue (DLQ)

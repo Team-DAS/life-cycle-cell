@@ -4,7 +4,7 @@ import com.freelance.lifecycle.applicationservice.dto.ApplicationRequestDTO;
 import com.freelance.lifecycle.applicationservice.dto.ApplicationResponseDTO;
 import com.freelance.lifecycle.applicationservice.dto.StatusUpdateDTO;
 import com.freelance.lifecycle.applicationservice.service.ApplicationService;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

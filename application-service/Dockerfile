@@ -3,18 +3,24 @@ FROM openjdk:17-jdk-slim as builder
 
 WORKDIR /app
 
-# Copy gradle files
-COPY gradle/ gradle/
-COPY gradlew .
-COPY gradlew.bat .
-COPY build.gradle .
-COPY settings.gradle .
+# Install required packages
+RUN apt-get update && apt-get install -y bash dos2unix
 
-# Copy source code
-COPY src/ src/
+# Copy the entire project structure
+COPY . .
 
-# Build the application
-RUN ./gradlew build -x test
+# Convert line endings and set permissions
+RUN dos2unix gradlew && \
+    chmod +x gradlew && \
+    echo "Current directory:" && pwd && \
+    echo "Project structure:" && find . -type d
+
+# Verify Gradle version and download dependencies
+RUN bash ./gradlew --version && \
+    bash ./gradlew dependencies
+
+# Build the specific project
+RUN bash ./gradlew :application-service:build -x test
 
 # Runtime stage
 FROM openjdk:17-slim
@@ -25,7 +31,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy the built jar from builder stage
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/application-service/build/libs/*.jar app.jar
 
 # Expose port
 EXPOSE 8080

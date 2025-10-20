@@ -1,5 +1,5 @@
 # Multi-stage build for API Gateway
-FROM openjdk:17-jdk-slim as builder
+FROM eclipse-temurin:17-jdk-jammy as builder
 
 WORKDIR /app
 
@@ -7,17 +7,20 @@ WORKDIR /app
 COPY gradle/ gradle/
 COPY gradlew .
 COPY gradlew.bat .
-COPY build.gradle .
 COPY settings.gradle .
+COPY api-gateway/build.gradle .
+
+# Install dos2unix
+RUN apt-get update && apt-get install -y dos2unix && rm -rf /var/lib/apt/lists/*
 
 # Copy source code
-COPY src/ src/
-
+COPY api-gateway/src/ src/
+RUN dos2unix gradlew && chmod +x ./gradlew
 # Build the application
-RUN ./gradlew build -x test
+RUN bash ./gradlew build -x test
 
 # Runtime stage
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 

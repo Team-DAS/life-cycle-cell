@@ -1,3 +1,11 @@
+// Ensure Gradle can resolve plugins (used when running Gradle inside Docker)
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+		mavenCentral()
+	}
+}
+
 rootProject.name = 'life-cycle-cell'
 
 include 'application-service'

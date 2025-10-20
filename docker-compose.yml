@@ -1,4 +1,4 @@
-version: '3.8'
+# ELIMINAR esta línea: version: '3.8'
 
 services:
   # PostgreSQL Database
@@ -65,17 +65,14 @@ services:
   # Application Service
   application-service:
     build:
-      context: ./application-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./application-service/Dockerfile
     container_name: life-cycle-application-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_PROFILES_ACTIVE: docker
-    # Removed port exposure - only accessible through API Gateway
-    # ports:
-    #   - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,8 +88,8 @@ services:
   # Notification Service
   notification-service:
     build:
-      context: ./notification-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./notification-service/Dockerfile
     container_name: life-cycle-notification-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notifications:5432/sql7
@@ -103,9 +100,6 @@ services:
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
       SPRING_PROFILES_ACTIVE: docker
-    # Removed port exposure - only accessible through API Gateway
-    # ports:
-    #   - "8083:8083"
     depends_on:
       postgres-notifications:
         condition: service_healthy
@@ -123,18 +117,16 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./api-gateway/Dockerfile
     container_name: life-cycle-api-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8000:8000"
     depends_on:
-      application-service:
-        condition: service_healthy
-      notification-service:
-        condition: service_healthy
+      - application-service
+      - notification-service
     networks:
       - life-cycle-network
     healthcheck:
@@ -143,43 +135,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  # Project Service (placeholder for future service)
-  project-service:
-    image: openjdk:17-jre-slim
-    container_name: life-cycle-project-service
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-    ports:
-      - "8081:8081"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - life-cycle-network
-    profiles:
-      - future-services
-
-  # User Service (placeholder for future service)
-  user-service:
-    image: openjdk:17-jre-slim
-    container_name: life-cycle-user-service
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-    ports:
-      - "8082:8082"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - life-cycle-network
-    profiles:
-      - future-services
-
 
 volumes:
   postgres_data:

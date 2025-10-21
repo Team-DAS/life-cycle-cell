@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import com.freelance.lifecycle.applicationservice.messaging.NotificationEventDTO;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class ApplicationServiceImpl implements ApplicationService {
 
     private final ApplicationRepository applicationRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public ApplicationResponseDTO createApplication(ApplicationRequestDTO dto) {
@@ -35,6 +38,20 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setEmployerId(1L); // This should be retrieved from project service
         
         Application savedApplication = applicationRepository.save(application);
+
+        // Publish notification event (async)
+        try {
+            NotificationEventDTO event = new NotificationEventDTO(savedApplication.getEmployerId(),
+                    "New application from freelancer " + savedApplication.getFreelancerId() + " for project " + savedApplication.getProjectId(),
+                    "NEW_APPLICATION");
+            // Send to default exchange with routing key = queue name so it is routed directly to the queue
+            rabbitTemplate.convertAndSend("", "notifications.queue", event);
+        } catch (Exception e) {
+            // Log and continue; application creation should not fail because of notification issues
+            // Using System.out for simplicity; real code should use a logger
+            System.err.println("Failed to publish notification event: " + e.getMessage());
+        }
+
         return mapToResponseDTO(savedApplication);
     }
 

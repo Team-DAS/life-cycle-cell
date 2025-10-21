@@ -68,11 +68,20 @@ services:
       context: .
       dockerfile: ./application-service/Dockerfile
     container_name: life-cycle-application-service
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,6 +100,9 @@ services:
       context: .
       dockerfile: ./notification-service/Dockerfile
     container_name: life-cycle-notification-service
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notifications:5432/sql7
       SPRING_DATASOURCE_USERNAME: postgres
@@ -100,6 +112,8 @@ services:
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
       SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8083:8083"
     depends_on:
       postgres-notifications:
         condition: service_healthy
@@ -120,6 +134,9 @@ services:
       context: .
       dockerfile: ./api-gateway/Dockerfile
     container_name: life-cycle-api-gateway
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       SPRING_PROFILES_ACTIVE: docker
     ports:

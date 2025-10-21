@@ -10,6 +10,9 @@ build/
 
 # Compiled class file
 *.class
+# test files
+# Ignorar cachés de pytest y Python dentro de e2e-tests
+
 
 # Log file
 *.log
@@ -77,3 +80,8 @@ Thumbs.db
 application-*.yml
 !application.yml
 !application-common.yml
+
+
+**/.pytest_cache/
+**/__pycache__/
+**/.venv/

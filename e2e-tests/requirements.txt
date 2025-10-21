@@ -1,0 +1,5 @@
+requests
+pika
+psycopg2-binary
+pytest
+pytest-html

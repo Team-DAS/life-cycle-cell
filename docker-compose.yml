@@ -4,11 +4,12 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: life-cycle-postgres
+    container_name: life-cycle-postgres-aplications
     environment:
       POSTGRES_DB: sql4
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+      LC_ALL: C.UTF-8
     ports:
       - "5432:5432"
     volumes:
@@ -30,6 +31,7 @@ services:
       POSTGRES_DB: sql7
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+      LC_ALL: C.UTF-8
     ports:
       - "5433:5432"
     volumes:
@@ -72,7 +74,7 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sql4?characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_PROFILES_ACTIVE: docker
@@ -104,7 +106,7 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notifications:5432/sql7
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notifications:5432/sql7?characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_RABBITMQ_HOST: rabbitmq

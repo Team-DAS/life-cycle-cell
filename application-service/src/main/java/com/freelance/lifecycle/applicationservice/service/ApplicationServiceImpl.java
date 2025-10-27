@@ -27,33 +27,32 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public ApplicationResponseDTO createApplication(ApplicationRequestDTO dto) {
-        Application application = new Application();
-        application.setProjectId(dto.getProjectId());
-        application.setFreelancerId(dto.getFreelancerId());
-        application.setMessage(dto.getMessage());
-        application.setStatus(ApplicationStatus.PENDING);
-        
-        // Note: employerId should be retrieved from the project service
-        // For now, we'll set it to null or a default value
-        application.setEmployerId(1L); // This should be retrieved from project service
-        
-        Application savedApplication = applicationRepository.save(application);
+    Application application = new Application();
+    application.setProjectId(dto.getProjectId());
+    application.setFreelancerId(dto.getFreelancerId());
+    application.setMessage(dto.getMessage());
+    application.setStatus(ApplicationStatus.PENDING);
+    application.setEmployerId(1L); 
+    
+    Application savedApplication = applicationRepository.save(application);
 
-        // Publish notification event (async)
-        try {
-            NotificationEventDTO event = new NotificationEventDTO(savedApplication.getEmployerId(),
-                    "New application from freelancer " + savedApplication.getFreelancerId() + " for project " + savedApplication.getProjectId(),
-                    "NEW_APPLICATION");
-            // Send to default exchange with routing key = queue name so it is routed directly to the queue
-            rabbitTemplate.convertAndSend("", "notifications.queue", event);
-        } catch (Exception e) {
-            // Log and continue; application creation should not fail because of notification issues
-            // Using System.out for simplicity; real code should use a logger
-            System.err.println("Failed to publish notification event: " + e.getMessage());
-        }
-
-        return mapToResponseDTO(savedApplication);
+    // Publish notification event (async)
+    try {
+        // --- CÓDIGO A CAMBIAR ---
+        String descriptiveMessage = "New application '" + dto.getName() 
+                                    + "' was submitted for project " + savedApplication.getProjectId();
+        
+        NotificationEventDTO event = new NotificationEventDTO(savedApplication.getEmployerId(),
+                descriptiveMessage, // <-- USA EL NUEVO MENSAJE
+                "NEW_APPLICATION");
+        
+        rabbitTemplate.convertAndSend("", "notifications.queue", event);
+    } catch (Exception e) {
+        System.err.println("Failed to publish notification event: " + e.getMessage());
     }
+
+    return mapToResponseDTO(savedApplication);
+}
 
     @Override
     public ApplicationResponseDTO updateStatus(Long id, StatusUpdateDTO dto) {

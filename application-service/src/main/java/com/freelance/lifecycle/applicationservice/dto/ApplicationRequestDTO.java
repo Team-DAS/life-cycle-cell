@@ -13,6 +13,8 @@ public class ApplicationRequestDTO {
 
     @NotNull(message = "Project ID is required")
     private Long projectId;
+    private String name;
+    private String description;
 
     @NotNull(message = "Freelancer ID is required")
     private Long freelancerId;

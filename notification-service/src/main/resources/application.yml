@@ -6,7 +6,7 @@ spring:
     name: notification-service
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/sql7
+    url: jdbc:postgresql://localhost:5433/sql7
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
